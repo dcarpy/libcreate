@@ -22,6 +22,9 @@ namespace create {
     using namespace boost::asio;
     port.open(portName);
     port.set_option(serial_port::baud_rate(baud));
+    port.set_option(serial_port::character_size(8));
+    port.set_option(serial_port::parity(serial_port::parity::none));
+    port.set_option(serial_port::stop_bits(serial_port::stop_bits::one));
     port.set_option(serial_port::flow_control(serial_port::flow_control::none));
 
     usleep(1000000);
@@ -72,7 +75,7 @@ namespace create {
     // Start continuously reading one byte at a time
     boost::asio::async_read(port,
                             boost::asio::buffer(&byteRead, 1),
-                            boost::bind(&Serial::onData, this, _1, _2));
+                            boost::bind(&Serial::onData, shared_from_this(), _1, _2));
 
     ioThread = boost::thread(boost::bind(&boost::asio::io_service::run, &io));
 
@@ -145,7 +148,7 @@ namespace create {
     // Read the next byte
     boost::asio::async_read(port,
                             boost::asio::buffer(&byteRead, 1),
-                            boost::bind(&Serial::onData, this, _1, _2));
+                            boost::bind(&Serial::onData, shared_from_this(), _1, _2));
   }
 
   bool Serial::send(const uint8_t* bytes, unsigned int numBytes) {
